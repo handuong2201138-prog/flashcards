@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Từ Vựng Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --surface2: #1e2130;
+    --border: #2a2e3f;
+    --accent: #6c9aff;
+    --accent2: #ff6b8a;
+    --green: #4ade80;
+    --red: #f87171;
+    --text: #e8eaf2;
+    --text2: #8b90a8;
+    --card-w: 340px;
+    --card-h: 420px;
+  }
+
+- { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+font-family: ‘Sora’, sans-serif;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Background mesh */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background:
+radial-gradient(ellipse 60% 50% at 20% 20%, rgba(108,154,255,0.06) 0%, transparent 70%),
+radial-gradient(ellipse 50% 60% at 80% 80%, rgba(255,107,138,0.05) 0%, transparent 70%);
+pointer-events: none;
+}
+
+/* ─── HEADER ─── */
+.header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 18px 24px;
+border-bottom: 1px solid var(–border);
+background: rgba(22,25,32,0.9);
+backdrop-filter: blur(12px);
+position: sticky;
+top: 0;
+z-index: 100;
+}
+.logo { font-family:‘Space Mono’,monospace; font-size:15px; color:var(–accent); letter-spacing:0.08em; }
+.header-stats { font-size:13px; color:var(–text2); font-family:‘Space Mono’,monospace; }
+
+/* ─── SECTION SELECTOR ─── */
+.section-screen {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+min-height: calc(100vh - 61px);
+padding: 40px 20px;
+gap: 32px;
+}
+.section-title {
+font-size: 28px;
+font-weight: 700;
+text-align: center;
+line-height: 1.2;
+}
+.section-title span { color: var(–accent); }
+.section-subtitle { font-size: 14px; color: var(–text2); text-align:center; }
+
+.days-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+gap: 14px;
+width: 100%;
+max-width: 580px;
+}
+.day-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 20px 18px;
+cursor: pointer;
+transition: all 0.22s ease;
+position: relative;
+overflow: hidden;
+}
+.day-card::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: linear-gradient(135deg, rgba(108,154,255,0.08), transparent);
+opacity: 0;
+transition: opacity 0.22s;
+}
+.day-card:hover { border-color: rgba(108,154,255,0.3); }
+.day-card:hover::before { opacity: 1; }
+.day-label { font-family:‘Space Mono’,monospace; font-size:11px; color:var(–accent); margin-bottom:6px; letter-spacing:0.06em; }
+.day-name { font-weight:600; font-size:16px; margin-bottom:4px; }
+.day-count { font-size:12px; color:var(–text2); }
+.day-progress-bar {
+height: 3px;
+background: var(–border);
+border-radius: 2px;
+margin-top: 12px;
+overflow: hidden;
+}
+.day-progress-fill {
+height: 100%;
+background: linear-gradient(90deg, var(–accent), var(–accent2));
+border-radius: 2px;
+transition: width 0.4s ease;
+}
+.day-learned-tag {
+position: absolute;
+top: 10px;
+right: 10px;
+background: rgba(74,222,128,0.15);
+color: var(–green);
+border-radius: 6px;
+font-size: 10px;
+font-family: ‘Space Mono’, monospace;
+padding: 2px 6px;
+}
+
+.day-btn-row {
+display: flex;
+gap: 8px;
+margin-top: 12px;
+flex-wrap: wrap;
+}
+.btn-start-home {
+flex: 1;
+background: rgba(108,154,255,0.12);
+color: var(–accent);
+border: 1px solid rgba(108,154,255,0.25);
+border-radius: 8px;
+padding: 6px 10px;
+font-family: ‘Sora’, sans-serif;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+white-space: nowrap;
+}
+.btn-start-home:hover { background: rgba(108,154,255,0.22); }
+.btn-review-home {
+flex: 1.4;
+background: rgba(255,107,138,0.1);
+color: var(–accent2);
+border: 1px solid rgba(255,107,138,0.25);
+border-radius: 8px;
+padding: 6px 10px;
+font-family: ‘Sora’, sans-serif;
+font-size: 11px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+white-space: nowrap;
+}
+.btn-review-home:hover { background: rgba(255,107,138,0.2); }
+
+/* ─── STUDY SCREEN ─── */
+.study-screen {
+display: none;
+flex-direction: column;
+align-items: center;
+min-height: calc(100vh - 61px);
+padding: 16px 20px 40px;
+gap: 16px;
+box-sizing: border-box;
+}
+
+/* Progress bar top */
+.progress-row {
+width: 100%;
+max-width: 420px;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.progress-bar {
+flex: 1;
+height: 4px;
+background: var(–border);
+border-radius: 2px;
+overflow: hidden;
+}
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, var(–accent), var(–accent2));
+border-radius: 2px;
+transition: width 0.35s ease;
+}
+.progress-text { font-family:‘Space Mono’,monospace; font-size:12px; color:var(–text2); white-space:nowrap; }
+
+/* Card area */
+.card-area {
+position: relative;
+width: min(340px, calc(100vw - 40px));
+height: 420px;
+flex-shrink: 0;
+cursor: pointer;
+}
+
+.card-inner {
+width: 100%;
+height: 100%;
+position: relative;
+transition: transform 0.42s ease, opacity 0.3s ease;
+}
+.card-inner.flipped .card-front { opacity: 0; pointer-events: none; }
+.card-inner.flipped .card-back { opacity: 1; pointer-events: auto; }
+
+/* Swipe animation */
+.card-area.swipe-right .card-inner {
+animation: swipeRight 0.42s cubic-bezier(0.4,0,0.6,1) forwards;
+}
+.card-area.swipe-left .card-inner {
+animation: swipeLeft 0.42s cubic-bezier(0.4,0,0.6,1) forwards;
+}
+@keyframes swipeRight {
+to { transform: translateX(160%) rotate(15deg) scale(0.8); opacity: 0; }
+}
+@keyframes swipeLeft {
+to { transform: translateX(-160%) rotate(-15deg) scale(0.8); opacity: 0; }
+}
+
+.card-face {
+position: absolute;
+inset: 0;
+border-radius: 24px;
+border: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+transition: opacity 0.3s ease;
+}
+
+/* FRONT */
+.card-front {
+background: var(–surface);
+align-items: center;
+justify-content: center;
+gap: 14px;
+text-align: center;
+padding: 32px 28px;
+}
+.card-front .tap-hint {
+position: absolute;
+bottom: 18px;
+font-size: 11px;
+color: var(–text2);
+font-family: ‘Space Mono’, monospace;
+letter-spacing: 0.06em;
+}
+.word-en {
+font-size: 26px;
+font-weight: 700;
+line-height: 1.25;
+color: var(–text);
+}
+.word-badge {
+background: rgba(108,154,255,0.12);
+color: var(–accent);
+border-radius: 8px;
+padding: 3px 10px;
+font-size: 11px;
+font-family: ‘Space Mono’, monospace;
+letter-spacing: 0.05em;
+}
+.word-icon {
+font-size: 42px;
+margin-bottom: 4px;
+opacity: 0.7;
+}
+
+/* BACK */
+.card-back {
+background: linear-gradient(145deg, #1a1e2e, #161920);
+opacity: 0;
+pointer-events: none;
+padding: 22px 24px;
+gap: 0;
+overflow-y: auto;
+scrollbar-width: thin;
+scrollbar-color: var(–border) transparent;
+}
+.back-section {
+padding: 10px 0;
+border-bottom: 1px solid var(–border);
+}
+.back-section:last-child { border-bottom: none; }
+.back-label {
+font-size: 9px;
+font-family: ‘Space Mono’, monospace;
+color: var(–text2);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 5px;
+}
+.back-vi { font-size: 17px; font-weight: 600; color: var(–text); line-height: 1.4; }
+.back-pos { color: var(–accent); font-size: 13px; }
+.back-syn { font-size: 13px; color: var(–text2); line-height: 1.5; }
+.back-ex { font-size: 13px; color: var(–text); line-height: 1.55; font-style: italic; }
+.back-ex-vi { font-size: 12px; color: var(–text2); margin-top: 3px; }
+.loading-dots {
+display: inline-flex;
+gap: 4px;
+align-items: center;
+}
+.loading-dots span {
+width: 5px; height: 5px;
+background: var(–accent);
+border-radius: 50%;
+animation: dotPulse 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+0%,80%,100% { opacity: 0.3; transform: scale(0.8); }
+40% { opacity: 1; transform: scale(1); }
+}
+
+/* Swipe hints overlay */
+.swipe-hint-left, .swipe-hint-right {
+position: absolute;
+top: 50%;
+transform: translateY(-50%);
+padding: 8px 14px;
+border-radius: 10px;
+font-size: 12px;
+font-family: ‘Space Mono’, monospace;
+font-weight: 700;
+letter-spacing: 0.05em;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.15s;
+z-index: 10;
+}
+.swipe-hint-left {
+left: -100px;
+background: rgba(248,113,113,0.2);
+color: var(–red);
+border: 1px solid var(–red);
+}
+.swipe-hint-right {
+right: -100px;
+background: rgba(74,222,128,0.2);
+color: var(–green);
+border: 1px solid var(–green);
+}
+.card-area.dragging-right .swipe-hint-right { opacity: 1; }
+.card-area.dragging-left .swipe-hint-left { opacity: 1; }
+
+/* Action buttons */
+.action-row {
+display: flex;
+gap: 20px;
+align-items: center;
+}
+.btn-action {
+width: 60px; height: 60px;
+border-radius: 50%;
+border: none;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 22px;
+transition: all 0.2s;
+}
+.btn-no {
+background: rgba(248,113,113,0.15);
+color: var(–red);
+border: 1.5px solid rgba(248,113,113,0.3);
+}
+.btn-yes {
+background: rgba(74,222,128,0.15);
+color: var(–green);
+border: 1.5px solid rgba(74,222,128,0.3);
+}
+.btn-flip {
+width: 48px; height: 48px;
+background: var(–surface2);
+color: var(–text2);
+border: 1.5px solid var(–border);
+font-size: 16px;
+}
+.btn-action:hover { transform: scale(1.12); }
+.btn-no:hover { background: rgba(248,113,113,0.25); }
+.btn-yes:hover { background: rgba(74,222,128,0.25); }
+.btn-action:active { transform: scale(0.95); }
+
+.action-labels {
+display: flex;
+gap: 20px;
+align-items: center;
+}
+.action-label {
+font-size: 11px;
+color: var(–text2);
+font-family: ‘Space Mono’, monospace;
+text-align: center;
+width: 60px;
+}
+.action-label-mid { width: 48px; }
+
+/* Swipe drag on card overlay colors */
+.overlay-yes, .overlay-no {
+position: absolute;
+inset: 0;
+border-radius: 24px;
+pointer-events: none;
+opacity: 0;
+transition: opacity 0.1s;
+z-index: 5;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 36px;
+font-weight: 700;
+font-family: ‘Space Mono’, monospace;
+letter-spacing: 0.04em;
+}
+.overlay-yes {
+background: rgba(74,222,128,0.1);
+color: var(–green);
+border: 3px solid var(–green);
+border-radius: 24px;
+}
+.overlay-no {
+background: rgba(248,113,113,0.1);
+color: var(–red);
+border: 3px solid var(–red);
+border-radius: 24px;
+}
+
+/* ─── STATS SCREEN ─── */
+.stats-screen {
+display: none;
+flex-direction: column;
+align-items: center;
+min-height: calc(100vh - 61px);
+padding: 40px 24px;
+gap: 24px;
+}
+.stats-emoji { font-size: 56px; }
+.stats-headline { font-size: 26px; font-weight: 700; text-align:center; }
+.stats-headline span { color: var(–accent); }
+.stats-cards {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 12px;
+width: 100%;
+max-width: 340px;
+}
+.stat-chip {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 14px;
+padding: 16px;
+text-align: center;
+}
+.stat-chip-num { font-size: 28px; font-weight: 700; font-family:‘Space Mono’,monospace; }
+.stat-chip-label { font-size: 11px; color: var(–text2); margin-top: 4px; }
+.stat-chip.green .stat-chip-num { color: var(–green); }
+.stat-chip.red .stat-chip-num { color: var(–red); }
+
+.circle-chart {
+width: 120px; height: 120px;
+position: relative;
+}
+.circle-chart svg { transform: rotate(-90deg); }
+.circle-bg { fill: none; stroke: var(–border); stroke-width: 8; }
+.circle-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+.circle-label {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+font-family: ‘Space Mono’, monospace;
+}
+.circle-pct { font-size: 22px; font-weight: 700; }
+.circle-sub { font-size: 10px; color: var(–text2); }
+
+.btn-primary {
+background: linear-gradient(135deg, var(–accent), #4a7aff);
+color: #fff;
+border: none;
+border-radius: 14px;
+padding: 14px 32px;
+font-family: ‘Sora’, sans-serif;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+box-shadow: 0 4px 20px rgba(108,154,255,0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(108,154,255,0.4); }
+
+.btn-secondary {
+background: var(–surface2);
+color: var(–text);
+border: 1px solid var(–border);
+border-radius: 14px;
+padding: 14px 32px;
+font-family: ‘Sora’, sans-serif;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(–accent); }
+
+.btn-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+
+/* Review mode banner */
+.review-banner {
+background: rgba(255,107,138,0.1);
+border: 1px solid rgba(255,107,138,0.25);
+color: var(–accent2);
+border-radius: 10px;
+padding: 8px 16px;
+font-size: 12px;
+font-family: ‘Space Mono’, monospace;
+letter-spacing: 0.05em;
+}
+
+/* Back button */
+.btn-back {
+background: none;
+border: none;
+color: var(–text2);
+cursor: pointer;
+font-family: ‘Space Mono’, monospace;
+font-size: 12px;
+padding: 4px 0;
+display: flex;
+align-items: center;
+gap: 6px;
+transition: color 0.2s;
+}
+.btn-back:hover { color: var(–text); }
+
+/* Perfect score */
+.confetti-row {
+font-size: 28px;
+letter-spacing: 0.1em;
+}
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+  <div class="logo">VOCAB_CARDS</div>
+  <div class="header-stats" id="headerStats">— từ vựng —</div>
+</div>
+
+<!-- SECTION SELECTOR -->
+
+<div class="section-screen" id="sectionScreen">
+  <div>
+    <div class="section-title">Chọn <span>ngày học</span></div>
+    <div class="section-subtitle" style="margin-top:8px">Swipe phải = thuộc ✓ &nbsp;·&nbsp; Swipe trái = chưa thuộc ✗</div>
+  </div>
+  <div class="days-grid" id="daysGrid"></div>
+</div>
+
+<!-- STUDY SCREEN -->
+
+<div class="study-screen" id="studyScreen">
+  <div style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center">
+    <button class="btn-back" onclick="goHome()">← Về trang chủ</button>
+    <div id="reviewBanner" class="review-banner" style="display:none">🔄 ÔN TẬP</div>
+  </div>
+
+  <div class="progress-row">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0/0</div>
+  </div>
+
+  <!-- Card -->
+
+  <div class="card-area" id="cardArea">
+    <div class="overlay-yes" id="overlayYes">THUỘC ✓</div>
+    <div class="overlay-no" id="overlayNo">CHƯA ✗</div>
+    <div class="swipe-hint-right">THUỘC ✓</div>
+    <div class="swipe-hint-left">CHƯA ✗</div>
+    <div class="card-inner" id="cardInner">
+      <!-- FRONT -->
+      <div class="card-face card-front" id="cardFront">
+        <div class="word-icon" id="cardIcon">📚</div>
+        <div class="word-badge" id="cardBadge">—</div>
+        <div class="word-en" id="cardWord">Loading...</div>
+        <div class="tap-hint">Nhấn để xem nghĩa ↩</div>
+      </div>
+      <!-- BACK -->
+      <div class="card-face card-back" id="cardBack">
+        <div class="back-section">
+          <div class="back-label">Nghĩa tiếng Việt</div>
+          <div class="back-vi" id="backVi">—</div>
+        </div>
+        <div class="back-section">
+          <div class="back-label">Từ loại</div>
+          <div class="back-pos" id="backPos"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="back-section">
+          <div class="back-label">Từ đồng nghĩa</div>
+          <div class="back-syn" id="backSyn"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+        </div>
+        <div class="back-section">
+          <div class="back-label">Ví dụ</div>
+          <div class="back-ex" id="backEx"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+          <div class="back-ex-vi" id="backExVi"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+    <div class="action-row">
+      <button class="btn-action btn-no" onclick="markCard(false)" title="Chưa thuộc">✗</button>
+      <button class="btn-action btn-flip" onclick="flipCard()" title="Lật thẻ">↩</button>
+      <button class="btn-action btn-yes" onclick="markCard(true)" title="Đã thuộc">✓</button>
+    </div>
+    <div class="action-labels">
+      <div class="action-label" style="color:var(--red);font-size:10px">CHƯA THUỘC</div>
+      <div class="action-label action-label-mid" style="font-size:10px">LẬT THẺ</div>
+      <div class="action-label" style="color:var(--green);font-size:10px">ĐÃ THUỘC</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS SCREEN -->
+
+<div class="stats-screen" id="statsScreen">
+  <div id="statsEmoji" class="stats-emoji">🎉</div>
+  <div class="stats-headline" id="statsHeadline">Học xong rồi!</div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+    <svg class="circle-chart" viewBox="0 0 120 120">
+      <circle class="circle-bg" cx="60" cy="60" r="50"/>
+      <circle class="circle-fill" id="circleArc" cx="60" cy="60" r="50" stroke="url(#grad)" stroke-dasharray="314" stroke-dashoffset="314"/>
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#6c9aff"/>
+          <stop offset="100%" style="stop-color:#4ade80"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="circle-label" style="position:relative;margin-top:-100px;height:120px">
+      <div class="circle-pct" id="circlePercent" style="margin-top:44px">0%</div>
+      <div class="circle-sub">đã thuộc</div>
+    </div>
+  </div>
+
+  <div class="stats-cards">
+    <div class="stat-chip green">
+      <div class="stat-chip-num" id="statKnown">0</div>
+      <div class="stat-chip-label">Đã thuộc ✓</div>
+    </div>
+    <div class="stat-chip red">
+      <div class="stat-chip-num" id="statUnknown">0</div>
+      <div class="stat-chip-label">Chưa thuộc ✗</div>
+    </div>
+  </div>
+
+  <div id="perfectMsg" style="display:none;text-align:center">
+    <div class="confetti-row">🌟✨🎊✨🌟</div>
+    <div style="font-size:14px;color:var(--text2);margin-top:8px">Tuyệt vời! Thuộc hết rồi!</div>
+  </div>
+
+  <div class="btn-row" id="statsBtns">
+    <button class="btn-primary" id="reviewBtn" onclick="startReview()">🔄 Ôn từ chưa thuộc</button>
+    <button class="btn-secondary" onclick="goHome()">🏠 Về trang chủ</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const DAYS = [
+  {
+    label: "Ngày 22/01/2026",
+    words: [
+      ["Economic crisis / recession","Khủng hoảng / suy thoái kinh tế"],
+      ["Economical","Tiết kiệm (sử dụng khôn ngoan, tránh phí của)"],
+      ["Buy in bulk","Mua sỉ/số lượng lớn"],
+      ["Industry","Ngành công nghiệp"],
+      ["Industrial","Thuộc về công nghiệp"],
+      ["Industrious","Cần cù, siêng năng"],
+      ["Specialist","Chuyên gia"],
+      ["Specialization","Sự chuyên môn hóa"],
+      ["Specialize","Chuyên về (specialize in...)"],
+      ["Expert / Professional","Chuyên gia"],
+      ["Consultant","Cố vấn"],
+      ["Rely on / Depend on","Phụ thuộc vào"],
+      ["Count on","Tin tưởng vào ai/cái gì"],
+      ["Hinge on","Phụ thuộc hoàn toàn"],
+      ["Predict","Dự đoán"],
+      ["Enhance / Improve","Nâng cao, cải thiện"],
+      ["Representative","Người đại diện"],
+      ["Correspondence","Sự trao đổi thư tín"],
+      ["Correspond","Trao đổi qua lại/xứng hợp"],
+      ["Correspondent","Phóng viên, người đưa tin"],
+      ["Awareness of","Sự nhận thức về"],
+      ["Personalize","Cá nhân hóa"],
+      ["Urgent","Cần thiết, cấp bách"],
+      ["Appropriate","Phù hợp, tương thích"],
+      ["Subsequent","Tiếp theo sau"],
+      ["Preservation","Sự bảo quản"],
+      ["Preserve","Bảo quản"],
+      ["Consecutively","Liên tiếp"],
+      ["Unforeseen","Không lường trước được"],
+      ["Projection","Sự dự đoán/phóng chiếu"],
+      ["Proficiency","Sự thành thạo"],
+      ["Advancement","Sự tiến bộ, thăng tiến"],
+      ["Distraction","Sự sao nhãng"],
+      ["Commended","Được khen ngợi"],
+      ["Reserve","Đặt chỗ trước"],
+      ["Knowledgeable","Am hiểu, có kiến thức"],
+      ["Auditor","Kiểm toán viên"],
+      ["Affordable / Reasonable","Giá cả phải chăng, hợp lý"],
+      ["Occupy","Nắm giữ vị trí/chiếm chỗ"],
+      ["Occupancy rate","Tỷ lệ lấp đầy (phòng khách sạn)"],
+      ["Initiative","Sáng kiến, sự cải tiến"],
+      ["Nominated","Được đề cử"],
+      ["Claim","Đòi hỏi, yêu cầu bồi thường, tuyên bố"],
+      ["Complaint","Lời phàn nàn"],
+      ["Yield","Sản lượng, lợi nhuận"],
+      ["Mishandle","Xử lý sai, thiếu kiểm soát"],
+      ["Justify","Bào chữa, thanh minh"],
+      ["Illustrate","Minh họa"],
+      ["Renovate","Nâng cấp, cải tạo"],
+      ["Contribution","Sự đóng góp"],
+      ["Valid","Có hiệu lực"],
+      ["Accompany","Đi cùng, hộ tống"],
+      ["Obtain","Đạt được, giành được"],
+    ]
+  },
+  {
+    label: "Ngày 23/01/2026",
+    words: [
+      ["Distributor","Nhà cung cấp (phân phối)"],
+      ["Retail store","Cửa hàng bán lẻ"],
+      ["Steady","Ổn định, vững chắc"],
+      ["A wide range / variety of","Một loạt các, đa dạng các..."],
+      ["Frequent","Thường xuyên"],
+      ["Swiftly / Promptly","Nhanh chóng, ngay lập tức"],
+      ["Resolve / Tackle / Deal with","Giải quyết (vấn đề)"],
+      ["Administrative","Thuộc về hành chính"],
+      ["Employ","Thuê, tuyển dụng, sử dụng"],
+      ["Employee","Nhân viên, người làm thuê"],
+      ["Employer","Chủ, người sử dụng lao động"],
+      ["Uneventful","Yên ổn, không có gì đặc biệt/biến cố"],
+      ["Cover","Bao phủ, bao gồm, làm thay, chi trả"],
+      ["Suburban location","Khu vực ngoại ô"],
+      ["Simmer","Ninh nhỏ lửa, sôi liu riu"],
+      ["Thicken","Làm cho đặc lại"],
+      ["Apart from / Aside from","Ngoài ra, ngoại trừ"],
+    ]
+  },
+  {
+    label: "Ngày 24/01/2026",
+    words: [
+      ["Verify","Xác minh, kiểm tra lại"],
+      ["Geospatial industry","Ngành công nghiệp không gian địa lý"],
+      ["Market study","Nghiên cứu thị trường"],
+      ["Fringe benefit","Phụ cấp ngoài, phúc lợi phụ"],
+      ["Consult","Hỏi ý kiến, tra cứu, bàn bạc"],
+      ["Agent","Đại lý, người đại diện"],
+      ["Inquiry / Enquiry","Câu hỏi, yêu cầu, sự thẩm tra"],
+      ["Postpone","Trì hoãn"],
+      ["Timely manner","Một cách kịp thời, đúng lúc"],
+      ["Hotel amenity","Tiện nghi khách sạn"],
+      ["Blizzard","Trận bão tuyết"],
+      ["Company outing","Chuyến đi chơi/dã ngoại của công ty"],
+      ["Facility","Cơ sở vật chất, tiện nghi"],
+    ]
+  },
+  {
+    label: "Ngày 25/01/2026",
+    words: [
+      ["Significantly / Remarkably","Đáng kể"],
+      ["Reach / Attain","Đạt được (mốc, con số)"],
+      ["Achieve","Đạt được (thành tựu)"],
+      ["Record high","Mức cao kỷ lục"],
+      ["Performance review / appraisal","Sự đánh giá năng lực nhân viên"],
+      ["Outstanding / Exceptional","Xuất sắc, nổi bật"],
+      ["Donation","Sự quyên góp"],
+      ["Donor","Nhà quyên góp, người hiến tặng"],
+      ["Potential customer","Khách hàng tiềm năng"],
+      ["Prospective","Có triển vọng, thuộc về tương lai"],
+      ["Profitable","Có lợi nhuận"],
+      ["Profit margin","Biên lợi nhuận"],
+      ["Generate","Tạo ra, phát ra"],
+      ["Strategy","Chiến lược"],
+      ["Strategic","Thuộc về chiến lược"],
+      ["Expand","Mở rộng (quy mô)"],
+      ["Expansion","Sự mở rộng"],
+      ["Extend","Kéo dài (thời gian, khoảng cách)"],
+      ["Extensive","Sâu rộng"],
+      ["Broaden","Mở rộng (ví dụ: mở rộng kiến thức)"],
+      ["Indicate","Chỉ ra, cho biết"],
+      ["Indicator","Vật chỉ thị, kim chỉ nam"],
+      ["Reveal / Disclose / Unveil","Tiết lộ"],
+      ["Survey","Cuộc khảo sát"],
+      ["Findings","Những kết quả tìm thấy"],
+      ["Statistics","Thống kê"],
+      ["Estimate","Ước tính"],
+      ["Analyze","Phân tích"],
+      ["Analyst","Nhà phân tích"],
+      ["Trend","Xu hướng"],
+      ["Consumer behavior","Hành vi người tiêu dùng"],
+      ["Target audience / market","Khách hàng / Thị trường mục tiêu"],
+      ["Monitor","Giám sát, theo dõi"],
+      ["Supervisor","Người giám sát"],
+      ["Competitor","Đối thủ cạnh tranh"],
+      ["Competitive edge","Lợi thế cạnh tranh"],
+      ["Dominate","Thống trị, chiếm ưu thế"],
+      ["Market share","Thị phần"],
+      ["Demand for","Nhu cầu cho cái gì"],
+      ["Satisfaction","Sự hài lòng"],
+      ["Constructive feedback","Phản hồi có tính xây dựng"],
+      ["Effective / Efficient","Hiệu quả"],
+      ["Optimize","Tối ưu hóa"],
+      ["Implement","Thực hiện, triển khai"],
+      ["Procedure","Quy trình, thủ tục"],
+      ["Regulation","Quy định"],
+      ["Compliance","Sự tuân thủ"],
+      ["Comply with / Abide by / Adhere to","Tuân thủ"],
+    ]
+  },
+  {
+    label: "Ngày 26/01/2026",
+    words: [
+      ["Feature","Có, bao gồm; nổi bật"],
+      ["Secured","Bảo mật, thắt chặt"],
+      ["Promptly","Một cách nhanh chóng, đúng giờ"],
+      ["Stipend","Trợ cấp (thường cho thực tập sinh)"],
+      ["Rent / Lease","Thuê / Tiền thuê"],
+      ["Appointment","Cuộc hẹn hoặc sự bổ nhiệm"],
+      ["Reliable / Dependable","Đáng tin cậy"],
+      ["Application","Đơn xin việc, ứng dụng, sự áp dụng"],
+      ["Committee","Ủy ban"],
+      ["Urge somebody to do something","Thúc giục/Khuyến khích ai đó làm gì"],
+      ["Cautiously / Carefully / Thoroughly","Một cách cẩn thận, kỹ lưỡng"],
+      ["Artificial preservative","Chất bảo quản nhân tạo"],
+      ["Eliminate","Loại bỏ"],
+      ["To finance","Cấp vốn, tài trợ"],
+      ["Postpone / Put off","Trì hoãn"],
+      ["Licensed agent","Đại lý được cấp phép"],
+      ["Former","Trước đây, cũ (cựu...)"],
+      ["Long-awaited","Đợi chờ đã lâu"],
+      ["Acceleration","Sự tăng tốc, gia tốc"],
+      ["Intention","Ý định"],
+      ["Provision","Điều khoản (trong hợp đồng)"],
+      ["Property","Tài sản, bất động sản"],
+      ["Building complex","Khu phức hợp"],
+      ["Favorable","Có lợi, thuận lợi, được ưa chuộng"],
+      ["Slight","Nhẹ, không đáng kể"],
+      ["Courtesy","Sự nhã nhặn, lịch sự"],
+      ["Laboratory","Phòng thí nghiệm"],
+      ["Proximity","Sự gần gũi (về khoảng cách hoặc thời gian)"],
+      ["Competence","Năng lực, khả năng"],
+    ]
+  },
+  {
+    label: "Ngày 31/01/2026",
+    words: [
+      ["Renovate / Refurbish","Cải tạo, trùng tu"],
+      ["Personnel director","Giám đốc nhân sự"],
+      ["Spokesperson","Người phát ngôn"],
+      ["Sizeable","Đáng kể (về số lượng, giá trị)"],
+      ["Wing","Dãy nhà, phần mở rộng"],
+      ["Going forward","Kể từ nay trở đi"],
+      ["Temporary","Tạm thời"],
+      ["Adjacent to","Ngay sát bên"],
+      ["Generous","Hào phóng"],
+      ["Student enrollment","Số lượng sinh viên nhập học"],
+      ["State-of-the-art","Hiện đại nhất, tân tiến"],
+      ["Faculty","Khoa; giảng viên; khả năng/năng lực"],
+      ["Recall","Gợi nhớ hoặc triệu hồi (hàng hóa)"],
+      ["Enable","Cho phép, làm cho có thể"],
+      ["Faulty","Bị lỗi, không hoàn hảo"],
+      ["Troubleshooting","Khắc phục sự cố"],
+      ["Defect","Khuyết điểm, lỗi"],
+      ["Eventually","Cuối cùng"],
+      ["Eligible","Đủ tư cách"],
+      ["Beverage","Nước giải khát"],
+      ["Upcoming","Sắp xảy ra"],
+      ["Installation","Sự lắp đặt"],
+      ["Contractor","Nhà thầu xây dựng"],
+      ["Authentic","Xác thực, đích thực"],
+      ["Vital","Quan trọng, thiết yếu"],
+      ["Renewal","Sự gia hạn"],
+      ["Inquiry","Câu hỏi, yêu cầu"],
+      ["Dispose of","Vứt bỏ, xử lý"],
+      ["Luggage / Baggage","Hành lý"],
+      ["Capacity","Khả năng, công suất"],
+      ["Temporary","Tạm thời"],
+      ["Attributable","Quy cho, gắn cho"],
+      ["Complement","Bổ sung"],
+      ["Flyer / Leaflet / Pamphlet","Tờ rơi"],
+      ["Fertilizer","Phân bón"],
+    ]
+  }
+];
+
+// Emoji icons per topic feel
+const ICONS = ['📖','💡','🔑','🌟','📝','💬','🎯','⚡','🔍','📌','✨','🎓','💼','🌐','🔧'];
+
+// ─── STATE ───────────────────────────────────────────────────
+let currentDay = null;
+let queue = [];
+let queueIdx = 0;
+let known = new Set();
+let unknown = new Set();
+let isReview = false;
+let isFlipped = false;
+let aiCache = {};
+let isDragging = false;
+let startX = 0, currentX = 0;
+let progress = {}; // {dayIdx: {known:[...], unknown:[...]}}
+
+// Load progress from localStorage
+try {
+  const saved = localStorage.getItem('vocab_progress');
+  if(saved) progress = JSON.parse(saved);
+} catch(e) {}
+
+function saveProgress() {
+  try { localStorage.setItem('vocab_progress', JSON.stringify(progress)); } catch(e) {}
+}
+
+// ─── RENDER HOME ─────────────────────────────────────────────
+function renderHome() {
+  const grid = document.getElementById('daysGrid');
+  grid.innerHTML = '';
+  DAYS.forEach((day, i) => {
+    const p = progress[i] || {known:[], unknown:[]};
+    const pct = day.words.length > 0 ? Math.round((p.known.length / day.words.length)*100) : 0;
+    const unknownCount = p.unknown.length;
+    const hasStarted = p.known.length + p.unknown.length > 0;
+
+    const div = document.createElement('div');
+    div.className = 'day-card';
+
+    let statusTag = pct === 100 ? '<div class="day-learned-tag">✓ XONG</div>' : '';
+    let reviewBtn = (hasStarted && unknownCount > 0 && pct < 100)
+      ? `<button class="btn-review-home" onclick="event.stopPropagation();startDay(${i},true)">🔄 Ôn ${unknownCount} từ chưa thuộc</button>`
+      : '';
+
+    div.innerHTML = `
+      ${statusTag}
+      <div class="day-label">NGÀY ${i+1}</div>
+      <div class="day-name">${day.label.replace('Ngày ','')}</div>
+      <div class="day-count">${day.words.length} từ · ${pct}% thuộc</div>
+      <div class="day-progress-bar"><div class="day-progress-fill" style="width:${pct}%"></div></div>
+      <div class="day-btn-row">
+        <button class="btn-start-home" onclick="startDay(${i},false)">${!hasStarted ? '▶ Bắt đầu' : '↺ Học lại'}</button>
+        ${reviewBtn}
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+  document.getElementById('headerStats').textContent = `${DAYS.reduce((s,d)=>s+d.words.length,0)} từ · ${DAYS.length} ngày`;
+}
+
+// ─── START DAY ───────────────────────────────────────────────
+function startDay(dayIdx, reviewMode) {
+  currentDay = dayIdx;
+  isReview = reviewMode;
+  const day = DAYS[dayIdx];
+
+  if(reviewMode) {
+    const p = progress[dayIdx] || {known:[],unknown:[]};
+    queue = day.words.filter((_,i) => p.unknown.includes(i));
+    if(queue.length === 0) { goHome(); return; }
+    known = new Set(); unknown = new Set();
+  } else {
+    queue = [...day.words];
+    // Shuffle
+    for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
+    known = new Set(); unknown = new Set();
+  }
+
+  queueIdx = 0;
+  aiCache = {};
+
+  document.getElementById('sectionScreen').style.display = 'none';
+  document.getElementById('statsScreen').style.display = 'none';
+  document.getElementById('studyScreen').style.display = 'flex';
+  document.getElementById('reviewBanner').style.display = isReview ? 'block' : 'none';
+
+  renderCard();
+  updateProgress();
+  setupSwipe();
+}
+
+// ─── CARD RENDERING ──────────────────────────────────────────
+function renderCard() {
+  if(queueIdx >= queue.length) { showStats(); return; }
+  const [en, vi] = queue[queueIdx];
+  isFlipped = false;
+
+  const cardInner = document.getElementById('cardInner');
+  cardInner.classList.remove('flipped');
+  document.getElementById('overlayYes').style.opacity = '0';
+  document.getElementById('overlayNo').style.opacity = '0';
+
+  document.getElementById('cardWord').textContent = en;
+  document.getElementById('cardIcon').textContent = ICONS[queueIdx % ICONS.length];
+  document.getElementById('cardBadge').textContent = `${queueIdx+1} / ${queue.length}`;
+
+  // Reset back
+  document.getElementById('backVi').textContent = vi;
+  setLoading('backPos'); setLoading('backSyn'); setLoading('backEx');
+  document.getElementById('backExVi').textContent = '';
+
+  // Prefetch AI if not cached
+  const key = en;
+  if(!aiCache[key]) fetchAI(en, vi);
+}
+
+function setLoading(id) {
+  document.getElementById(id).innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('cardInner').classList.toggle('flipped', isFlipped);
+  if(isFlipped) populateBack();
+}
+
+function populateBack() {
+  const [en, vi] = queue[queueIdx];
+  const key = en;
+  if(!aiCache[key] || !aiCache[key].done) fetchAI(en, vi);
+  const d = aiCache[key] || {};
+  document.getElementById("backPos").textContent = d.pos || "—";
+  document.getElementById("backSyn").textContent = d.synonyms || "—";
+  document.getElementById("backEx").textContent = d.example || "—";
+  document.getElementById("backExVi").textContent = d.exampleVi || "";
+}
+
+// ─── STATIC WORD DATA ────────────────────────────────────────
+// Pre-built data: pos, synonyms, example, exampleVi
+const WORD_DATA = {
+  "Economic crisis / recession": {pos:"Cụm danh từ (n. phrase)", synonyms:"downturn, slump, depression, financial crisis", example:"The country faced a severe economic crisis after the stock market crashed.", exampleVi:"Đất nước đối mặt với cuộc khủng hoảng kinh tế nghiêm trọng sau khi thị trường chứng khoán sụp đổ."},
+  "Economical": {pos:"Tính từ (adj)", synonyms:"thrifty, frugal, cost-effective, efficient", example:"Buying in bulk is the most economical way to shop for groceries.", exampleVi:"Mua số lượng lớn là cách tiết kiệm nhất để mua thực phẩm."},
+  "Buy in bulk": {pos:"Cụm động từ (v. phrase)", synonyms:"buy wholesale, stock up, buy in quantity", example:"Many restaurants buy in bulk to reduce their food costs.", exampleVi:"Nhiều nhà hàng mua sỉ để giảm chi phí thực phẩm."},
+  "Industry": {pos:"Danh từ (n)", synonyms:"sector, trade, business, manufacturing", example:"The automotive industry employs millions of workers worldwide.", exampleVi:"Ngành công nghiệp ô tô tuyển dụng hàng triệu công nhân trên toàn thế giới."},
+  "Industrial": {pos:"Tính từ (adj)", synonyms:"manufacturing, commercial, factory-based, mechanical", example:"The city developed rapidly after the industrial revolution.", exampleVi:"Thành phố phát triển nhanh chóng sau cuộc cách mạng công nghiệp."},
+  "Industrious": {pos:"Tính từ (adj)", synonyms:"hard-working, diligent, assiduous, productive", example:"She is an industrious student who always completes her assignments on time.", exampleVi:"Cô ấy là một sinh viên cần cù, luôn hoàn thành bài tập đúng hạn."},
+  "Specialist": {pos:"Danh từ (n)", synonyms:"expert, professional, authority, consultant", example:"We need to consult a financial specialist before making this investment.", exampleVi:"Chúng ta cần tham khảo ý kiến chuyên gia tài chính trước khi thực hiện khoản đầu tư này."},
+  "Specialization": {pos:"Danh từ (n)", synonyms:"expertise, focus, concentration, specialty", example:"Her specialization in tax law makes her highly sought after.", exampleVi:"Chuyên môn hóa của cô ấy trong luật thuế khiến cô ấy rất được săn đón."},
+  "Specialize": {pos:"Động từ (v)", synonyms:"focus on, concentrate on, major in, be expert in", example:"This clinic specializes in treating sports injuries.", exampleVi:"Phòng khám này chuyên về điều trị chấn thương thể thao."},
+  "Expert / Professional": {pos:"Danh từ (n)", synonyms:"specialist, authority, master, veteran", example:"You should hire a professional to handle your tax returns.", exampleVi:"Bạn nên thuê chuyên gia để xử lý tờ khai thuế của mình."},
+  "Consultant": {pos:"Danh từ (n)", synonyms:"advisor, expert, counselor, specialist", example:"The company hired a marketing consultant to boost their sales.", exampleVi:"Công ty thuê một nhà tư vấn marketing để tăng doanh số."},
+  "Rely on / Depend on": {pos:"Cụm động từ (v. phrase)", synonyms:"count on, bank on, lean on, hinge on", example:"We rely on renewable energy to power our office building.", exampleVi:"Chúng tôi phụ thuộc vào năng lượng tái tạo để cung cấp điện cho tòa nhà văn phòng."},
+  "Count on": {pos:"Cụm động từ (v. phrase)", synonyms:"rely on, depend on, trust, bank on", example:"You can always count on her to deliver results on time.", exampleVi:"Bạn luôn có thể tin tưởng vào cô ấy để có kết quả đúng hạn."},
+  "Hinge on": {pos:"Cụm động từ (v. phrase)", synonyms:"depend entirely on, rest on, pivot on, turn on", example:"The success of the project hinges on getting the funding approved.", exampleVi:"Sự thành công của dự án phụ thuộc hoàn toàn vào việc được duyệt tài trợ."},
+  "Predict": {pos:"Động từ (v)", synonyms:"forecast, anticipate, project, foresee", example:"Analysts predict that the market will recover by next year.", exampleVi:"Các nhà phân tích dự đoán rằng thị trường sẽ phục hồi vào năm tới."},
+  "Enhance / Improve": {pos:"Động từ (v)", synonyms:"boost, upgrade, strengthen, elevate", example:"Regular exercise can enhance both physical and mental health.", exampleVi:"Tập thể dục thường xuyên có thể cải thiện cả sức khỏe thể chất và tinh thần."},
+  "Representative": {pos:"Danh từ (n)", synonyms:"delegate, spokesperson, agent, envoy", example:"The sales representative visited our office to present their new products.", exampleVi:"Người đại diện bán hàng đến văn phòng chúng tôi để giới thiệu sản phẩm mới của họ."},
+  "Correspondence": {pos:"Danh từ (n)", synonyms:"communication, letters, exchange, mail", example:"All business correspondence should be kept on file for three years.", exampleVi:"Tất cả thư tín kinh doanh cần được lưu trữ trong ba năm."},
+  "Correspond": {pos:"Động từ (v)", synonyms:"communicate, match, align, agree", example:"Please correspond with the client via email to confirm the details.", exampleVi:"Vui lòng trao đổi với khách hàng qua email để xác nhận các chi tiết."},
+  "Correspondent": {pos:"Danh từ (n)", synonyms:"reporter, journalist, writer, correspondent", example:"The foreign correspondent filed a report from the conflict zone.", exampleVi:"Phóng viên nước ngoài gửi bài tường thuật từ vùng xung đột."},
+  "Awareness of": {pos:"Cụm danh từ (n. phrase)", synonyms:"knowledge of, consciousness of, understanding of", example:"We need to raise awareness of environmental issues among young people.", exampleVi:"Chúng ta cần nâng cao nhận thức về các vấn đề môi trường trong giới trẻ."},
+  "Personalize": {pos:"Động từ (v)", synonyms:"customize, tailor, individualize, adapt", example:"The company allows customers to personalize their orders with a special message.", exampleVi:"Công ty cho phép khách hàng cá nhân hóa đơn hàng của họ bằng một tin nhắn đặc biệt."},
+  "Urgent": {pos:"Tính từ (adj)", synonyms:"pressing, critical, immediate, crucial", example:"There is an urgent need for medical supplies in the affected area.", exampleVi:"Có nhu cầu cấp bách về thuốc men tại khu vực bị ảnh hưởng."},
+  "Appropriate": {pos:"Tính từ (adj)", synonyms:"suitable, fitting, proper, apt", example:"Please wear appropriate attire to the business meeting.", exampleVi:"Vui lòng mặc trang phục phù hợp đến cuộc họp kinh doanh."},
+  "Subsequent": {pos:"Tính từ (adj)", synonyms:"following, later, succeeding, ensuing", example:"The first meeting went well, and subsequent discussions led to a deal.", exampleVi:"Cuộc họp đầu tiên diễn ra tốt, và các cuộc thảo luận tiếp theo dẫn đến một thỏa thuận."},
+  "Preservation": {pos:"Danh từ (n)", synonyms:"conservation, protection, maintenance, safeguarding", example:"The preservation of historical buildings is important for cultural heritage.", exampleVi:"Việc bảo tồn các tòa nhà lịch sử quan trọng đối với di sản văn hóa."},
+  "Preserve": {pos:"Động từ (v)", synonyms:"conserve, protect, maintain, safeguard", example:"We must preserve the rainforest for future generations.", exampleVi:"Chúng ta phải bảo tồn rừng nhiệt đới cho các thế hệ tương lai."},
+  "Consecutively": {pos:"Trạng từ (adv)", synonyms:"successively, in a row, sequentially, one after another", example:"She won the award three years consecutively.", exampleVi:"Cô ấy đã giành giải thưởng ba năm liên tiếp."},
+  "Unforeseen": {pos:"Tính từ (adj)", synonyms:"unexpected, unanticipated, unpredicted, surprising", example:"Due to unforeseen circumstances, the event was postponed.", exampleVi:"Do các tình huống không lường trước được, sự kiện đã bị hoãn lại."},
+  "Projection": {pos:"Danh từ (n)", synonyms:"forecast, estimate, prediction, outlook", example:"The financial projection shows a 20% increase in profits next quarter.", exampleVi:"Dự báo tài chính cho thấy lợi nhuận tăng 20% trong quý tới."},
+  "Proficiency": {pos:"Danh từ (n)", synonyms:"skill, competence, expertise, mastery", example:"Proficiency in English is required for this position.", exampleVi:"Thành thạo tiếng Anh là yêu cầu bắt buộc cho vị trí này."},
+  "Advancement": {pos:"Danh từ (n)", synonyms:"progress, promotion, development, growth", example:"Career advancement often requires continuous learning and adaptability.", exampleVi:"Thăng tiến trong sự nghiệp thường đòi hỏi việc học hỏi liên tục và khả năng thích nghi."},
+  "Distraction": {pos:"Danh từ (n)", synonyms:"interruption, diversion, disruption, disturbance", example:"Put your phone away to avoid distractions while studying.", exampleVi:"Hãy cất điện thoại đi để tránh bị sao nhãng khi học."},
+  "Commended": {pos:"Động từ (v) - dạng bị động", synonyms:"praised, applauded, complimented, acknowledged", example:"The employee was commended for her outstanding performance.", exampleVi:"Nhân viên đó được khen ngợi vì hiệu suất xuất sắc của mình."},
+  "Reserve": {pos:"Động từ (v)", synonyms:"book, set aside, hold, secure", example:"I'd like to reserve a table for two at 7 PM.", exampleVi:"Tôi muốn đặt bàn cho hai người lúc 7 giờ tối."},
+  "Knowledgeable": {pos:"Tính từ (adj)", synonyms:"informed, well-versed, expert, educated", example:"She is very knowledgeable about international trade regulations.", exampleVi:"Cô ấy rất am hiểu về các quy định thương mại quốc tế."},
+  "Auditor": {pos:"Danh từ (n)", synonyms:"accountant, examiner, inspector, reviewer", example:"The auditor reviewed all financial records from the past three years.", exampleVi:"Kiểm toán viên xem xét tất cả hồ sơ tài chính trong ba năm qua."},
+  "Affordable / Reasonable": {pos:"Tính từ (adj)", synonyms:"inexpensive, cost-effective, budget-friendly, fair-priced", example:"The hotel offers affordable rates without compromising on quality.", exampleVi:"Khách sạn cung cấp mức giá phải chăng mà không ảnh hưởng đến chất lượng."},
+  "Occupy": {pos:"Động từ (v)", synonyms:"hold, fill, take up, inhabit", example:"The new manager will occupy the corner office starting Monday.", exampleVi:"Người quản lý mới sẽ đảm nhận văn phòng góc bắt đầu từ thứ Hai."},
+  "Occupancy rate": {pos:"Cụm danh từ (n. phrase)", synonyms:"fill rate, booking rate, capacity utilization", example:"The hotel's occupancy rate reached 95% during the holiday season.", exampleVi:"Tỷ lệ lấp đầy của khách sạn đạt 95% trong mùa nghỉ lễ."},
+  "Initiative": {pos:"Danh từ (n)", synonyms:"plan, proposal, program, effort", example:"The government launched a new initiative to promote green energy.", exampleVi:"Chính phủ ra mắt sáng kiến mới nhằm thúc đẩy năng lượng xanh."},
+  "Nominated": {pos:"Động từ (v) - bị động", synonyms:"proposed, suggested, put forward, recommended", example:"She was nominated for the Employee of the Year award.", exampleVi:"Cô ấy được đề cử cho giải Nhân viên của năm."},
+  "Claim": {pos:"Động từ / Danh từ (v/n)", synonyms:"assert, demand, allege, contend", example:"He filed a claim with the insurance company after the accident.", exampleVi:"Anh ấy nộp đơn yêu cầu bồi thường với công ty bảo hiểm sau vụ tai nạn."},
+  "Complaint": {pos:"Danh từ (n)", synonyms:"grievance, objection, criticism, protest", example:"The customer filed a formal complaint about the poor service.", exampleVi:"Khách hàng đã nộp đơn khiếu nại chính thức về dịch vụ kém."},
+  "Yield": {pos:"Danh từ / Động từ (n/v)", synonyms:"output, return, produce, generate", example:"This investment yields a 5% annual return.", exampleVi:"Khoản đầu tư này mang lại lợi nhuận hàng năm 5%."},
+  "Mishandle": {pos:"Động từ (v)", synonyms:"mismanage, botch, bungle, mistreat", example:"The company mishandled the customer complaints, leading to negative reviews.", exampleVi:"Công ty đã xử lý sai các khiếu nại của khách hàng, dẫn đến đánh giá tiêu cực."},
+  "Justify": {pos:"Động từ (v)", synonyms:"explain, defend, vindicate, rationalize", example:"Can you justify the extra expenses in this month's budget?", exampleVi:"Bạn có thể giải thích các chi phí phát sinh trong ngân sách tháng này không?"},
+  "Illustrate": {pos:"Động từ (v)", synonyms:"demonstrate, show, depict, clarify", example:"The chart illustrates the company's revenue growth over five years.", exampleVi:"Biểu đồ minh họa sự tăng trưởng doanh thu của công ty trong năm năm."},
+  "Renovate": {pos:"Động từ (v)", synonyms:"refurbish, restore, remodel, rebuild", example:"They plan to renovate the old factory into a modern office space.", exampleVi:"Họ có kế hoạch cải tạo nhà máy cũ thành không gian văn phòng hiện đại."},
+  "Contribution": {pos:"Danh từ (n)", synonyms:"donation, input, participation, share", example:"Her contribution to the research project was invaluable.", exampleVi:"Sự đóng góp của cô ấy vào dự án nghiên cứu là vô giá."},
+  "Valid": {pos:"Tính từ (adj)", synonyms:"legitimate, authentic, effective, binding", example:"This ticket is valid for one year from the date of purchase.", exampleVi:"Vé này có hiệu lực trong một năm kể từ ngày mua."},
+  "Accompany": {pos:"Động từ (v)", synonyms:"escort, go with, attend, join", example:"A parent must accompany children under 12 at all times.", exampleVi:"Cha mẹ phải đi cùng trẻ em dưới 12 tuổi ở mọi lúc."},
+  "Obtain": {pos:"Động từ (v)", synonyms:"acquire, get, secure, gain", example:"You need to obtain a permit before starting construction.", exampleVi:"Bạn cần xin giấy phép trước khi bắt đầu xây dựng."},
+  // Day 2
+  "Distributor": {pos:"Danh từ (n)", synonyms:"supplier, wholesaler, dealer, agent", example:"The company appointed a new distributor for the Southeast Asian market.", exampleVi:"Công ty bổ nhiệm nhà cung cấp mới cho thị trường Đông Nam Á."},
+  "Retail store": {pos:"Cụm danh từ (n. phrase)", synonyms:"shop, outlet, store, boutique", example:"The brand opened ten new retail stores across the country.", exampleVi:"Thương hiệu đã khai trương mười cửa hàng bán lẻ mới trên khắp cả nước."},
+  "Steady": {pos:"Tính từ (adj)", synonyms:"stable, consistent, reliable, constant", example:"The company maintained a steady growth rate over the past decade.", exampleVi:"Công ty duy trì tốc độ tăng trưởng ổn định trong thập kỷ qua."},
+  "A wide range / variety of": {pos:"Cụm danh từ (n. phrase)", synonyms:"a broad selection of, diverse, various, numerous", example:"We offer a wide range of services to meet your business needs.", exampleVi:"Chúng tôi cung cấp một loạt các dịch vụ để đáp ứng nhu cầu kinh doanh của bạn."},
+  "Frequent": {pos:"Tính từ (adj)", synonyms:"regular, common, recurring, habitual", example:"We have frequent meetings to keep the team aligned on goals.", exampleVi:"Chúng tôi có các cuộc họp thường xuyên để giữ cho nhóm đồng thuận về mục tiêu."},
+  "Swiftly / Promptly": {pos:"Trạng từ (adv)", synonyms:"quickly, rapidly, immediately, without delay", example:"The team responded swiftly to the client's request.", exampleVi:"Nhóm phản hồi nhanh chóng với yêu cầu của khách hàng."},
+  "Resolve / Tackle / Deal with": {pos:"Động từ (v)", synonyms:"address, handle, solve, manage", example:"The manager worked hard to resolve the conflict between team members.", exampleVi:"Người quản lý đã nỗ lực giải quyết mâu thuẫn giữa các thành viên nhóm."},
+  "Administrative": {pos:"Tính từ (adj)", synonyms:"managerial, organizational, executive, bureaucratic", example:"She handles all administrative tasks for the department.", exampleVi:"Cô ấy xử lý tất cả các công việc hành chính cho bộ phận."},
+  "Employ": {pos:"Động từ (v)", synonyms:"hire, recruit, engage, use", example:"The factory employs over 500 workers.", exampleVi:"Nhà máy tuyển dụng hơn 500 công nhân."},
+  "Employee": {pos:"Danh từ (n)", synonyms:"worker, staff member, laborer, associate", example:"The company provides health insurance for all full-time employees.", exampleVi:"Công ty cung cấp bảo hiểm y tế cho tất cả nhân viên toàn thời gian."},
+  "Employer": {pos:"Danh từ (n)", synonyms:"boss, company, organization, manager", example:"A good employer values and invests in their staff development.", exampleVi:"Một người chủ tốt đánh giá cao và đầu tư vào việc phát triển nhân viên."},
+  "Uneventful": {pos:"Tính từ (adj)", synonyms:"routine, unremarkable, ordinary, quiet", example:"The flight was long but uneventful, which was a relief.", exampleVi:"Chuyến bay dài nhưng bình lặng, điều đó thật nhẹ nhõm."},
+  "Cover": {pos:"Động từ (v)", synonyms:"include, substitute, pay for, protect", example:"Does your insurance cover dental treatment?", exampleVi:"Bảo hiểm của bạn có bao gồm điều trị nha khoa không?"},
+  "Suburban location": {pos:"Cụm danh từ (n. phrase)", synonyms:"outskirts, residential area, suburb, outer district", example:"The new warehouse is in a suburban location with easy highway access.", exampleVi:"Nhà kho mới nằm ở khu vực ngoại ô với khả năng tiếp cận đường cao tốc dễ dàng."},
+  "Simmer": {pos:"Động từ (v)", synonyms:"boil gently, stew, cook slowly", example:"Let the soup simmer for 20 minutes before serving.", exampleVi:"Để súp sôi liu riu trong 20 phút trước khi phục vụ."},
+  "Thicken": {pos:"Động từ (v)", synonyms:"solidify, condense, become denser, coagulate", example:"Add cornstarch to thicken the sauce.", exampleVi:"Thêm bột ngô để làm đặc nước sốt."},
+  "Apart from / Aside from": {pos:"Giới từ (prep)", synonyms:"besides, other than, except for, in addition to", example:"Apart from the cost, the project plan looks perfect.", exampleVi:"Ngoài chi phí ra, kế hoạch dự án trông hoàn hảo."},
+  // Day 3
+  "Verify": {pos:"Động từ (v)", synonyms:"confirm, check, validate, authenticate", example:"Please verify your email address to complete registration.", exampleVi:"Vui lòng xác minh địa chỉ email của bạn để hoàn tất đăng ký."},
+  "Geospatial industry": {pos:"Cụm danh từ (n. phrase)", synonyms:"mapping industry, GIS sector, remote sensing field", example:"The geospatial industry is rapidly growing due to satellite technology advances.", exampleVi:"Ngành công nghiệp không gian địa lý đang phát triển nhanh chóng nhờ vào tiến bộ công nghệ vệ tinh."},
+  "Market study": {pos:"Cụm danh từ (n. phrase)", synonyms:"market research, market analysis, consumer survey", example:"We conducted a thorough market study before launching the new product.", exampleVi:"Chúng tôi đã tiến hành nghiên cứu thị trường kỹ lưỡng trước khi ra mắt sản phẩm mới."},
+  "Fringe benefit": {pos:"Cụm danh từ (n. phrase)", synonyms:"perk, extra benefit, non-wage benefit, additional compensation", example:"The job offer includes a generous salary plus fringe benefits like health insurance.", exampleVi:"Đề nghị công việc bao gồm mức lương hào phóng cộng với phúc lợi phụ như bảo hiểm y tế."},
+  "Consult": {pos:"Động từ (v)", synonyms:"seek advice from, refer to, confer with, discuss with", example:"You should consult a lawyer before signing any contract.", exampleVi:"Bạn nên hỏi ý kiến luật sư trước khi ký bất kỳ hợp đồng nào."},
+  "Agent": {pos:"Danh từ (n)", synonyms:"representative, broker, delegate, intermediary", example:"Our sales agent will contact you within 24 hours.", exampleVi:"Đại lý bán hàng của chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ."},
+  "Inquiry / Enquiry": {pos:"Danh từ (n)", synonyms:"question, query, request, investigation", example:"We received several inquiries about the job opening.", exampleVi:"Chúng tôi nhận được nhiều câu hỏi về vị trí tuyển dụng."},
+  "Postpone": {pos:"Động từ (v)", synonyms:"delay, defer, put off, reschedule", example:"The meeting has been postponed to next Friday due to scheduling conflicts.", exampleVi:"Cuộc họp đã bị hoãn đến thứ Sáu tới do xung đột lịch trình."},
+  "Timely manner": {pos:"Cụm danh từ (n. phrase)", synonyms:"on time, promptly, without delay, within deadline", example:"Please respond to all customer inquiries in a timely manner.", exampleVi:"Vui lòng phản hồi tất cả câu hỏi của khách hàng một cách kịp thời."},
+  "Hotel amenity": {pos:"Cụm danh từ (n. phrase)", synonyms:"facility, feature, service, convenience", example:"The hotel amenities include a rooftop pool and free Wi-Fi.", exampleVi:"Tiện nghi khách sạn bao gồm bể bơi trên sân thượng và Wi-Fi miễn phí."},
+  "Blizzard": {pos:"Danh từ (n)", synonyms:"snowstorm, whiteout, heavy snow, snowfall", example:"The blizzard forced the airport to cancel all flights for two days.", exampleVi:"Trận bão tuyết buộc sân bay phải hủy tất cả các chuyến bay trong hai ngày."},
+  "Company outing": {pos:"Cụm danh từ (n. phrase)", synonyms:"team trip, corporate retreat, team outing, field trip", example:"The annual company outing is a great opportunity to build team spirit.", exampleVi:"Chuyến dã ngoại công ty hàng năm là cơ hội tuyệt vời để xây dựng tinh thần đội nhóm."},
+  "Facility": {pos:"Danh từ (n)", synonyms:"infrastructure, equipment, amenity, installation", example:"The new sports facility includes an Olympic-sized swimming pool.", exampleVi:"Cơ sở thể thao mới bao gồm bể bơi cỡ Olympic."},
+  // Day 4
+  "Significantly / Remarkably": {pos:"Trạng từ (adv)", synonyms:"considerably, substantially, notably, dramatically", example:"Sales increased significantly after the new marketing campaign.", exampleVi:"Doanh số tăng đáng kể sau chiến dịch marketing mới."},
+  "Reach / Attain": {pos:"Động từ (v)", synonyms:"achieve, hit, arrive at, accomplish", example:"The company reached its annual sales target three months ahead of schedule.", exampleVi:"Công ty đạt mục tiêu doanh số hàng năm sớm hơn ba tháng so với kế hoạch."},
+  "Achieve": {pos:"Động từ (v)", synonyms:"accomplish, attain, reach, fulfill", example:"She worked hard to achieve her goal of becoming a department manager.", exampleVi:"Cô ấy đã nỗ lực để đạt được mục tiêu trở thành trưởng phòng."},
+  "Record high": {pos:"Cụm danh từ (n. phrase)", synonyms:"all-time high, peak, highest point", example:"The stock market hit a record high yesterday.", exampleVi:"Thị trường chứng khoán đạt mức cao kỷ lục vào ngày hôm qua."},
+  "Performance review / appraisal": {pos:"Cụm danh từ (n. phrase)", synonyms:"evaluation, assessment, staff review, annual review", example:"All employees will undergo a performance review at the end of the year.", exampleVi:"Tất cả nhân viên sẽ trải qua đánh giá năng lực vào cuối năm."},
+  "Outstanding / Exceptional": {pos:"Tính từ (adj)", synonyms:"excellent, remarkable, superior, extraordinary", example:"She received an award for her outstanding contribution to the team.", exampleVi:"Cô ấy nhận được giải thưởng vì sự đóng góp xuất sắc cho nhóm."},
+  "Donation": {pos:"Danh từ (n)", synonyms:"contribution, gift, grant, charity", example:"The charity received a generous donation from a local business.", exampleVi:"Tổ chức từ thiện nhận được khoản quyên góp hào phóng từ một doanh nghiệp địa phương."},
+  "Donor": {pos:"Danh từ (n)", synonyms:"contributor, benefactor, supporter, giver", example:"The museum thanked its major donors at the annual gala.", exampleVi:"Bảo tàng cảm ơn những nhà quyên góp lớn tại buổi dạ tiệc hàng năm."},
+  "Potential customer": {pos:"Cụm danh từ (n. phrase)", synonyms:"prospect, lead, prospective client, target customer", example:"We need to identify potential customers before launching our campaign.", exampleVi:"Chúng ta cần xác định khách hàng tiềm năng trước khi triển khai chiến dịch."},
+  "Prospective": {pos:"Tính từ (adj)", synonyms:"potential, future, likely, expected", example:"The company is interviewing several prospective candidates for the position.", exampleVi:"Công ty đang phỏng vấn một số ứng viên tiềm năng cho vị trí đó."},
+  "Profitable": {pos:"Tính từ (adj)", synonyms:"lucrative, money-making, gainful, rewarding", example:"The new product line proved to be highly profitable within its first year.", exampleVi:"Dòng sản phẩm mới được chứng minh là có lợi nhuận cao trong năm đầu tiên."},
+  "Profit margin": {pos:"Cụm danh từ (n. phrase)", synonyms:"net margin, markup, return rate, earnings ratio", example:"Increasing efficiency helped the company improve its profit margin.", exampleVi:"Tăng hiệu quả giúp công ty cải thiện biên lợi nhuận."},
+  "Generate": {pos:"Động từ (v)", synonyms:"produce, create, yield, bring in", example:"The event generated significant interest from potential investors.", exampleVi:"Sự kiện đã tạo ra sự quan tâm đáng kể từ các nhà đầu tư tiềm năng."},
+  "Strategy": {pos:"Danh từ (n)", synonyms:"plan, approach, tactic, method", example:"The new marketing strategy helped the company double its customer base.", exampleVi:"Chiến lược marketing mới giúp công ty tăng gấp đôi lượng khách hàng."},
+  "Strategic": {pos:"Tính từ (adj)", synonyms:"planned, calculated, tactical, deliberate", example:"The company made a strategic decision to enter the Asian market.", exampleVi:"Công ty đã đưa ra quyết định chiến lược để thâm nhập thị trường châu Á."},
+  "Expand": {pos:"Động từ (v)", synonyms:"grow, enlarge, scale up, extend", example:"The company plans to expand its operations into three new countries.", exampleVi:"Công ty có kế hoạch mở rộng hoạt động sang ba quốc gia mới."},
+  "Expansion": {pos:"Danh từ (n)", synonyms:"growth, enlargement, extension, scaling-up", example:"The rapid expansion of the business required hiring additional staff.", exampleVi:"Sự mở rộng nhanh chóng của doanh nghiệp đòi hỏi phải tuyển thêm nhân viên."},
+  "Extend": {pos:"Động từ (v)", synonyms:"prolong, lengthen, stretch, continue", example:"The contract was extended for another two years.", exampleVi:"Hợp đồng được gia hạn thêm hai năm nữa."},
+  "Extensive": {pos:"Tính từ (adj)", synonyms:"comprehensive, thorough, wide-ranging, broad", example:"The report is based on extensive research conducted over three years.", exampleVi:"Báo cáo dựa trên nghiên cứu sâu rộng được thực hiện trong ba năm."},
+  "Broaden": {pos:"Động từ (v)", synonyms:"widen, expand, extend, open up", example:"Studying abroad can broaden your perspective significantly.", exampleVi:"Học ở nước ngoài có thể mở rộng quan điểm của bạn đáng kể."},
+  "Indicate": {pos:"Động từ (v)", synonyms:"show, suggest, point to, signal", example:"The data indicate a strong upward trend in consumer spending.", exampleVi:"Dữ liệu chỉ ra xu hướng tăng mạnh trong chi tiêu của người tiêu dùng."},
+  "Indicator": {pos:"Danh từ (n)", synonyms:"sign, signal, measure, marker", example:"GDP is a key indicator of a country's economic health.", exampleVi:"GDP là chỉ số quan trọng về sức khỏe kinh tế của một quốc gia."},
+  "Reveal / Disclose / Unveil": {pos:"Động từ (v)", synonyms:"uncover, expose, announce, make public", example:"The report revealed several serious issues within the company.", exampleVi:"Báo cáo tiết lộ một số vấn đề nghiêm trọng trong công ty."},
+  "Survey": {pos:"Danh từ / Động từ (n/v)", synonyms:"poll, questionnaire, study, investigation", example:"A survey of 1,000 customers showed high satisfaction with our service.", exampleVi:"Khảo sát 1.000 khách hàng cho thấy mức độ hài lòng cao với dịch vụ của chúng tôi."},
+  "Findings": {pos:"Danh từ số nhiều (n. pl)", synonyms:"results, conclusions, outcomes, data", example:"The researchers presented their findings at the annual conference.", exampleVi:"Các nhà nghiên cứu trình bày kết quả tìm thấy của họ tại hội nghị thường niên."},
+  "Statistics": {pos:"Danh từ (n)", synonyms:"data, figures, numbers, metrics", example:"According to the latest statistics, unemployment has fallen to 4%.", exampleVi:"Theo thống kê mới nhất, tỷ lệ thất nghiệp đã giảm xuống còn 4%."},
+  "Estimate": {pos:"Động từ / Danh từ (v/n)", synonyms:"approximate, calculate roughly, assess, gauge", example:"The contractor provided an estimate of $50,000 for the renovation.", exampleVi:"Nhà thầu cung cấp ước tính 50.000 đô la cho việc cải tạo."},
+  "Analyze": {pos:"Động từ (v)", synonyms:"examine, study, evaluate, assess", example:"We need to analyze the data before making any decisions.", exampleVi:"Chúng ta cần phân tích dữ liệu trước khi đưa ra bất kỳ quyết định nào."},
+  "Analyst": {pos:"Danh từ (n)", synonyms:"researcher, expert, examiner, specialist", example:"The market analyst predicted strong growth in the tech sector.", exampleVi:"Nhà phân tích thị trường dự đoán tăng trưởng mạnh trong lĩnh vực công nghệ."},
+  "Trend": {pos:"Danh từ (n)", synonyms:"tendency, pattern, direction, movement", example:"Social media marketing is the latest trend in advertising.", exampleVi:"Marketing mạng xã hội là xu hướng mới nhất trong quảng cáo."},
+  "Consumer behavior": {pos:"Cụm danh từ (n. phrase)", synonyms:"buying behavior, purchasing habit, customer pattern", example:"Understanding consumer behavior helps companies design better products.", exampleVi:"Hiểu hành vi người tiêu dùng giúp các công ty thiết kế sản phẩm tốt hơn."},
+  "Target audience / market": {pos:"Cụm danh từ (n. phrase)", synonyms:"target group, intended audience, core market, demographic", example:"The campaign was designed specifically for a young target audience.", exampleVi:"Chiến dịch được thiết kế đặc biệt cho đối tượng mục tiêu trẻ tuổi."},
+  "Monitor": {pos:"Động từ (v)", synonyms:"track, observe, supervise, keep an eye on", example:"Management must monitor employee performance regularly.", exampleVi:"Ban quản lý phải theo dõi hiệu suất nhân viên thường xuyên."},
+  "Supervisor": {pos:"Danh từ (n)", synonyms:"manager, overseer, team leader, line manager", example:"Report any issues directly to your supervisor.", exampleVi:"Báo cáo bất kỳ vấn đề nào trực tiếp với người giám sát của bạn."},
+  "Competitor": {pos:"Danh từ (n)", synonyms:"rival, opponent, contender, adversary", example:"We must study our competitors to identify our unique strengths.", exampleVi:"Chúng ta phải nghiên cứu các đối thủ cạnh tranh để xác định điểm mạnh độc đáo của mình."},
+  "Competitive edge": {pos:"Cụm danh từ (n. phrase)", synonyms:"competitive advantage, upper hand, strength, differentiation", example:"Fast delivery gives us a competitive edge over our rivals.", exampleVi:"Giao hàng nhanh mang lại cho chúng ta lợi thế cạnh tranh so với các đối thủ."},
+  "Dominate": {pos:"Động từ (v)", synonyms:"control, lead, command, rule", example:"This company dominates the smartphone market globally.", exampleVi:"Công ty này thống trị thị trường điện thoại thông minh toàn cầu."},
+  "Market share": {pos:"Cụm danh từ (n. phrase)", synonyms:"market portion, share of market, segment", example:"The company increased its market share by 10% this year.", exampleVi:"Công ty tăng thị phần lên 10% trong năm nay."},
+  "Demand for": {pos:"Cụm danh từ (n. phrase)", synonyms:"need for, requirement for, call for, want", example:"There is growing demand for electric vehicles worldwide.", exampleVi:"Nhu cầu về xe điện ngày càng tăng trên toàn thế giới."},
+  "Satisfaction": {pos:"Danh từ (n)", synonyms:"contentment, fulfillment, pleasure, approval", example:"Customer satisfaction is our top priority.", exampleVi:"Sự hài lòng của khách hàng là ưu tiên hàng đầu của chúng tôi."},
+  "Constructive feedback": {pos:"Cụm danh từ (n. phrase)", synonyms:"helpful criticism, positive feedback, useful input", example:"Managers should provide constructive feedback to help employees grow.", exampleVi:"Quản lý nên cung cấp phản hồi mang tính xây dựng để giúp nhân viên phát triển."},
+  "Effective / Efficient": {pos:"Tính từ (adj)", synonyms:"productive, successful, capable, competent", example:"An efficient workflow can save the company a significant amount of time.", exampleVi:"Quy trình làm việc hiệu quả có thể tiết kiệm cho công ty một lượng thời gian đáng kể."},
+  "Optimize": {pos:"Động từ (v)", synonyms:"improve, maximize, enhance, streamline", example:"We need to optimize our supply chain to reduce costs.", exampleVi:"Chúng ta cần tối ưu hóa chuỗi cung ứng để giảm chi phí."},
+  "Implement": {pos:"Động từ (v)", synonyms:"execute, carry out, apply, enforce", example:"The new policy will be implemented starting next month.", exampleVi:"Chính sách mới sẽ được triển khai bắt đầu từ tháng tới."},
+  "Procedure": {pos:"Danh từ (n)", synonyms:"process, method, protocol, guideline", example:"Follow the correct procedure when handling customer complaints.", exampleVi:"Hãy làm theo quy trình đúng khi xử lý khiếu nại của khách hàng."},
+  "Regulation": {pos:"Danh từ (n)", synonyms:"rule, law, policy, guideline", example:"Companies must comply with environmental regulations.", exampleVi:"Các công ty phải tuân thủ các quy định về môi trường."},
+  "Compliance": {pos:"Danh từ (n)", synonyms:"adherence, conformity, observance, obedience", example:"The audit found full compliance with all safety regulations.", exampleVi:"Cuộc kiểm toán cho thấy sự tuân thủ đầy đủ với tất cả các quy định an toàn."},
+  "Comply with / Abide by / Adhere to": {pos:"Cụm động từ (v. phrase)", synonyms:"follow, observe, conform to, stick to", example:"All employees must comply with the company's code of conduct.", exampleVi:"Tất cả nhân viên phải tuân thủ bộ quy tắc ứng xử của công ty."},
+  // Day 5
+  "Feature": {pos:"Động từ / Tính từ (v/adj)", synonyms:"include, highlight, showcase, present", example:"The new phone features a 200MP camera and all-day battery life.", exampleVi:"Điện thoại mới có camera 200MP và pin dùng cả ngày."},
+  "Secured": {pos:"Tính từ (adj)", synonyms:"protected, locked, safe, guarded", example:"All data is stored in a secured server with encryption.", exampleVi:"Tất cả dữ liệu được lưu trữ trên máy chủ bảo mật với mã hóa."},
+  "Promptly": {pos:"Trạng từ (adv)", synonyms:"immediately, quickly, without delay, swiftly", example:"Please respond to customer inquiries promptly.", exampleVi:"Vui lòng phản hồi các yêu cầu của khách hàng một cách nhanh chóng."},
+  "Stipend": {pos:"Danh từ (n)", synonyms:"allowance, subsidy, pay, compensation", example:"Interns receive a monthly stipend to cover their living expenses.", exampleVi:"Thực tập sinh nhận trợ cấp hàng tháng để trang trải chi phí sinh hoạt."},
+  "Rent / Lease": {pos:"Động từ / Danh từ (v/n)", synonyms:"hire, let, charter, tenancy", example:"The company decided to lease a larger office space downtown.", exampleVi:"Công ty quyết định thuê một không gian văn phòng lớn hơn ở trung tâm thành phố."},
+  "Appointment": {pos:"Danh từ (n)", synonyms:"meeting, booking, schedule, assignment", example:"I have a doctor's appointment at 3 PM tomorrow.", exampleVi:"Tôi có lịch khám bác sĩ lúc 3 giờ chiều ngày mai."},
+  "Reliable / Dependable": {pos:"Tính từ (adj)", synonyms:"trustworthy, consistent, steady, dependable", example:"We need a reliable supplier who delivers on time every time.", exampleVi:"Chúng tôi cần một nhà cung cấp đáng tin cậy, luôn giao hàng đúng hạn."},
+  "Application": {pos:"Danh từ (n)", synonyms:"form, request, software, use", example:"Please submit your job application before the deadline.", exampleVi:"Vui lòng nộp đơn xin việc của bạn trước hạn chót."},
+  "Committee": {pos:"Danh từ (n)", synonyms:"board, panel, group, council", example:"The committee will review all proposals at the next meeting.", exampleVi:"Ủy ban sẽ xem xét tất cả các đề xuất tại cuộc họp tiếp theo."},
+  "Urge somebody to do something": {pos:"Cụm động từ (v. phrase)", synonyms:"encourage, push, prompt, motivate", example:"The doctor urged the patient to quit smoking immediately.", exampleVi:"Bác sĩ thúc giục bệnh nhân bỏ thuốc lá ngay lập tức."},
+  "Cautiously / Carefully / Thoroughly": {pos:"Trạng từ (adv)", synonyms:"meticulously, diligently, painstakingly, attentively", example:"Review the contract cautiously before signing.", exampleVi:"Xem xét hợp đồng cẩn thận trước khi ký."},
+  "Artificial preservative": {pos:"Cụm danh từ (n. phrase)", synonyms:"chemical additive, food preservative, synthetic additive", example:"Many consumers prefer products with no artificial preservatives.", exampleVi:"Nhiều người tiêu dùng thích sản phẩm không có chất bảo quản nhân tạo."},
+  "Eliminate": {pos:"Động từ (v)", synonyms:"remove, get rid of, eradicate, exclude", example:"The company aims to eliminate all single-use plastics by 2026.", exampleVi:"Công ty nhằm mục tiêu loại bỏ tất cả nhựa dùng một lần vào năm 2026."},
+  "To finance": {pos:"Động từ (v)", synonyms:"fund, back, sponsor, support", example:"The government will finance the new infrastructure project.", exampleVi:"Chính phủ sẽ tài trợ cho dự án cơ sở hạ tầng mới."},
+  "Postpone / Put off": {pos:"Động từ (v)", synonyms:"delay, defer, reschedule, hold off", example:"The launch event was postponed due to the bad weather.", exampleVi:"Sự kiện ra mắt đã bị hoãn do thời tiết xấu."},
+  "Licensed agent": {pos:"Cụm danh từ (n. phrase)", synonyms:"certified agent, accredited representative, approved broker", example:"Only a licensed agent can legally sell insurance in this state.", exampleVi:"Chỉ có đại lý được cấp phép mới có thể hợp pháp bán bảo hiểm ở tiểu bang này."},
+  "Former": {pos:"Tính từ (adj)", synonyms:"previous, past, ex-, prior", example:"The former CEO returned to advise the board of directors.", exampleVi:"Giám đốc điều hành cũ trở lại để tư vấn cho hội đồng quản trị."},
+  "Long-awaited": {pos:"Tính từ (adj)", synonyms:"anticipated, expected, overdue, much-anticipated", example:"The long-awaited vaccine was finally approved by health authorities.", exampleVi:"Vaccine được mong chờ từ lâu cuối cùng đã được cơ quan y tế phê duyệt."},
+  "Acceleration": {pos:"Danh từ (n)", synonyms:"speed-up, increase, boost, surge", example:"The acceleration of digital transformation was driven by the pandemic.", exampleVi:"Sự tăng tốc của chuyển đổi số được thúc đẩy bởi đại dịch."},
+  "Intention": {pos:"Danh từ (n)", synonyms:"plan, aim, purpose, goal", example:"She had no intention of leaving the company so soon.", exampleVi:"Cô ấy không có ý định rời công ty sớm như vậy."},
+  "Provision": {pos:"Danh từ (n)", synonyms:"clause, condition, term, stipulation", example:"There is a provision in the contract allowing for early termination.", exampleVi:"Có một điều khoản trong hợp đồng cho phép chấm dứt sớm."},
+  "Property": {pos:"Danh từ (n)", synonyms:"real estate, asset, land, estate", example:"The company invested in commercial property in the city center.", exampleVi:"Công ty đầu tư vào bất động sản thương mại ở trung tâm thành phố."},
+  "Building complex": {pos:"Cụm danh từ (n. phrase)", synonyms:"compound, development, block, complex", example:"The new building complex will house offices, shops, and apartments.", exampleVi:"Khu phức hợp mới sẽ bao gồm các văn phòng, cửa hàng và căn hộ."},
+  "Favorable": {pos:"Tính từ (adj)", synonyms:"positive, advantageous, beneficial, encouraging", example:"The favorable exchange rate made imports more affordable.", exampleVi:"Tỷ giá hối đoái thuận lợi giúp hàng nhập khẩu trở nên phải chăng hơn."},
+  "Slight": {pos:"Tính từ (adj)", synonyms:"minor, small, marginal, minimal", example:"There was a slight delay in the delivery schedule.", exampleVi:"Có một sự chậm trễ nhỏ trong lịch giao hàng."},
+  "Courtesy": {pos:"Danh từ (n)", synonyms:"politeness, respect, consideration, etiquette", example:"Please extend the same courtesy to all customers regardless of their purchase amount.", exampleVi:"Vui lòng thể hiện sự nhã nhặn như nhau với tất cả khách hàng bất kể số tiền mua hàng."},
+  "Laboratory": {pos:"Danh từ (n)", synonyms:"lab, research facility, testing center, workshop", example:"All products are tested in our laboratory before being released.", exampleVi:"Tất cả sản phẩm được kiểm tra trong phòng thí nghiệm của chúng tôi trước khi phát hành."},
+  "Proximity": {pos:"Danh từ (n)", synonyms:"nearness, closeness, vicinity, adjacency", example:"The office's proximity to the metro station makes it convenient for staff.", exampleVi:"Sự gần gũi của văn phòng với ga tàu điện ngầm rất thuận tiện cho nhân viên."},
+  "Competence": {pos:"Danh từ (n)", synonyms:"skill, ability, capability, expertise", example:"Her technical competence impressed everyone in the interview.", exampleVi:"Năng lực kỹ thuật của cô ấy gây ấn tượng với mọi người trong buổi phỏng vấn."},
+  // Day 6
+  "Renovate / Refurbish": {pos:"Động từ (v)", synonyms:"restore, remodel, repair, rebuild", example:"The school was renovated over the summer to improve facilities.", exampleVi:"Trường học được cải tạo trong mùa hè để cải thiện cơ sở vật chất."},
+  "Personnel director": {pos:"Cụm danh từ (n. phrase)", synonyms:"HR director, head of HR, human resources manager", example:"The personnel director is responsible for all hiring decisions.", exampleVi:"Giám đốc nhân sự chịu trách nhiệm về tất cả các quyết định tuyển dụng."},
+  "Spokesperson": {pos:"Danh từ (n)", synonyms:"representative, mouthpiece, press officer, voice", example:"The company's spokesperson issued a statement about the recall.", exampleVi:"Người phát ngôn của công ty đã ra tuyên bố về việc thu hồi sản phẩm."},
+  "Sizeable": {pos:"Tính từ (adj)", synonyms:"substantial, considerable, significant, large", example:"The organization received a sizeable grant from the government.", exampleVi:"Tổ chức nhận được khoản tài trợ đáng kể từ chính phủ."},
+  "Wing": {pos:"Danh từ (n)", synonyms:"extension, annex, section, block", example:"The new hospital wing was built to accommodate more patients.", exampleVi:"Dãy bệnh viện mới được xây dựng để tiếp nhận nhiều bệnh nhân hơn."},
+  "Going forward": {pos:"Trạng từ (adv)", synonyms:"from now on, henceforth, in the future, moving ahead", example:"Going forward, all reports must be submitted by Monday morning.", exampleVi:"Kể từ nay, tất cả báo cáo phải được nộp vào sáng thứ Hai."},
+  "Temporary": {pos:"Tính từ (adj)", synonyms:"short-term, interim, provisional, transient", example:"The company hired temporary staff to handle the busy season.", exampleVi:"Công ty thuê nhân viên tạm thời để xử lý mùa bận rộn."},
+  "Adjacent to": {pos:"Tính từ / Giới từ (adj/prep)", synonyms:"next to, beside, neighboring, adjoining", example:"The new café is adjacent to the main library building.", exampleVi:"Quán cà phê mới nằm ngay bên cạnh tòa nhà thư viện chính."},
+  "Generous": {pos:"Tính từ (adj)", synonyms:"giving, charitable, liberal, magnanimous", example:"The foundation received a generous donation from an anonymous donor.", exampleVi:"Quỹ nhận được khoản quyên góp hào phóng từ một người quyên góp ẩn danh."},
+  "Student enrollment": {pos:"Cụm danh từ (n. phrase)", synonyms:"admission, registration, intake, student numbers", example:"Student enrollment at the university increased by 15% this year.", exampleVi:"Số lượng sinh viên nhập học tại trường đại học tăng 15% trong năm nay."},
+  "State-of-the-art": {pos:"Tính từ (adj)", synonyms:"cutting-edge, advanced, modern, high-tech", example:"The factory uses state-of-the-art equipment to ensure quality.", exampleVi:"Nhà máy sử dụng thiết bị tân tiến nhất để đảm bảo chất lượng."},
+  "Faculty": {pos:"Danh từ (n)", synonyms:"department, staff, teaching body, division", example:"The engineering faculty has produced many successful graduates.", exampleVi:"Khoa kỹ thuật đã đào tạo nhiều sinh viên tốt nghiệp thành công."},
+  "Recall": {pos:"Động từ (v)", synonyms:"remember, recollect, withdraw, pull back", example:"The car manufacturer issued a recall due to a brake defect.", exampleVi:"Nhà sản xuất ô tô đã phát hành lệnh thu hồi do lỗi phanh."},
+  "Enable": {pos:"Động từ (v)", synonyms:"allow, permit, make possible, facilitate", example:"The new software enables real-time collaboration across teams.", exampleVi:"Phần mềm mới cho phép cộng tác thời gian thực giữa các nhóm."},
+  "Faulty": {pos:"Tính từ (adj)", synonyms:"defective, broken, flawed, malfunctioning", example:"The faulty product was immediately removed from store shelves.", exampleVi:"Sản phẩm bị lỗi đã bị lấy khỏi kệ hàng ngay lập tức."},
+  "Troubleshooting": {pos:"Danh từ (n)", synonyms:"debugging, problem-solving, diagnostics, fixing", example:"The IT team spent hours troubleshooting the network issue.", exampleVi:"Nhóm IT đã dành hàng giờ để khắc phục sự cố mạng."},
+  "Defect": {pos:"Danh từ (n)", synonyms:"flaw, fault, imperfection, bug", example:"A manufacturing defect caused the product to malfunction.", exampleVi:"Lỗi sản xuất khiến sản phẩm bị trục trặc."},
+  "Eventually": {pos:"Trạng từ (adv)", synonyms:"finally, in the end, ultimately, at last", example:"He struggled at first but eventually became the top salesperson.", exampleVi:"Anh ấy gặp khó khăn lúc đầu nhưng cuối cùng trở thành nhân viên bán hàng xuất sắc nhất."},
+  "Eligible": {pos:"Tính từ (adj)", synonyms:"qualified, entitled, suitable, permitted", example:"Employees with over five years of service are eligible for the bonus.", exampleVi:"Nhân viên có hơn năm năm kinh nghiệm đủ điều kiện nhận tiền thưởng."},
+  "Beverage": {pos:"Danh từ (n)", synonyms:"drink, liquid refreshment, fluid", example:"The conference room will be stocked with beverages and light snacks.", exampleVi:"Phòng hội nghị sẽ được cung cấp đồ uống và đồ ăn nhẹ."},
+  "Upcoming": {pos:"Tính từ (adj)", synonyms:"forthcoming, approaching, imminent, coming", example:"Check the website for information about upcoming events.", exampleVi:"Kiểm tra trang web để biết thông tin về các sự kiện sắp tới."},
+  "Installation": {pos:"Danh từ (n)", synonyms:"setup, fitting, mounting, assembly", example:"The installation of new security cameras took two days.", exampleVi:"Việc lắp đặt camera an ninh mới mất hai ngày."},
+  "Contractor": {pos:"Danh từ (n)", synonyms:"builder, subcontractor, vendor, supplier", example:"The contractor submitted a bid for the construction project.", exampleVi:"Nhà thầu đã nộp hồ sơ dự thầu cho dự án xây dựng."},
+  "Authentic": {pos:"Tính từ (adj)", synonyms:"genuine, real, original, legitimate", example:"The restaurant serves authentic Vietnamese cuisine.", exampleVi:"Nhà hàng phục vụ ẩm thực Việt Nam đích thực."},
+  "Vital": {pos:"Tính từ (adj)", synonyms:"essential, crucial, important, necessary", example:"Good communication is vital for a successful team.", exampleVi:"Giao tiếp tốt là điều thiết yếu cho một nhóm thành công."},
+  "Renewal": {pos:"Danh từ (n)", synonyms:"extension, continuation, resumption, reinstatement", example:"Your subscription is due for renewal at the end of the month.", exampleVi:"Đăng ký của bạn đến hạn gia hạn vào cuối tháng."},
+  "Inquiry": {pos:"Danh từ (n)", synonyms:"question, query, request, investigation", example:"For further inquiries, please contact our customer support team.", exampleVi:"Để biết thêm thông tin, vui lòng liên hệ nhóm hỗ trợ khách hàng của chúng tôi."},
+  "Dispose of": {pos:"Cụm động từ (v. phrase)", synonyms:"throw away, get rid of, discard, remove", example:"Please dispose of hazardous waste according to local regulations.", exampleVi:"Vui lòng xử lý chất thải nguy hại theo quy định địa phương."},
+  "Luggage / Baggage": {pos:"Danh từ (n)", synonyms:"bags, suitcases, belongings, baggage", example:"Passengers are allowed one piece of carry-on luggage.", exampleVi:"Hành khách được phép mang một kiện hành lý xách tay."},
+  "Capacity": {pos:"Danh từ (n)", synonyms:"ability, capability, volume, output", example:"The stadium has a seating capacity of 80,000 people.", exampleVi:"Sân vận động có sức chứa 80.000 người."},
+  "Attributable": {pos:"Tính từ (adj)", synonyms:"due to, caused by, ascribed to, credited to", example:"The success is attributable to the team's hard work.", exampleVi:"Thành công có được là nhờ sự nỗ lực của cả nhóm."},
+  "Complement": {pos:"Động từ (v)", synonyms:"enhance, complete, go with, supplement", example:"The new skills complement his existing qualifications perfectly.", exampleVi:"Những kỹ năng mới bổ sung hoàn hảo cho các bằng cấp hiện có của anh ấy."},
+  "Flyer / Leaflet / Pamphlet": {pos:"Danh từ (n)", synonyms:"brochure, handout, circular, advertisement", example:"The team distributed flyers around the city to promote the event.", exampleVi:"Nhóm phát tờ rơi khắp thành phố để quảng bá sự kiện."},
+  "Fertilizer": {pos:"Danh từ (n)", synonyms:"compost, manure, nutrients, soil amendment", example:"Organic fertilizer improves soil quality without harmful chemicals.", exampleVi:"Phân bón hữu cơ cải thiện chất lượng đất mà không có hóa chất có hại."},
+};
+
+function fetchAI(en, vi) {
+  const key = en;
+  const data = WORD_DATA[key];
+  if(data) {
+    aiCache[key] = { ...data, done: true };
+  } else {
+    // Fallback: parse from the word string itself
+    aiCache[key] = {
+      pos: vi.includes('(n)') ? 'Danh từ (n)' : vi.includes('(v)') ? 'Động từ (v)' : vi.includes('(adj)') ? 'Tính từ (adj)' : '—',
+      synonyms: '—',
+      example: `Use "${en}" correctly in context.`,
+      exampleVi: '',
+      done: true
+    };
+  }
+  // If card is currently flipped on this word, update live
+  if(queueIdx < queue.length && queue[queueIdx][0] === en && isFlipped) {
+    const d = aiCache[key];
+    document.getElementById('backPos').textContent = d.pos || '—';
+    document.getElementById('backSyn').textContent = d.synonyms || '—';
+    document.getElementById('backEx').textContent = d.example || '—';
+    document.getElementById('backExVi').textContent = d.exampleVi || '';
+  }
+}
+
+// ─── MARK CARD ───────────────────────────────────────────────
+function markCard(isKnown) {
+  const cardArea = document.getElementById('cardArea');
+  if(cardArea.classList.contains('swipe-right') || cardArea.classList.contains('swipe-left')) return;
+
+  // Show overlay
+  if(isKnown) {
+    document.getElementById('overlayYes').style.opacity = '0.85';
+  } else {
+    document.getElementById('overlayNo').style.opacity = '0.85';
+  }
+
+  setTimeout(() => {
+    const cardArea = document.getElementById('cardArea');
+    cardArea.classList.add(isKnown ? 'swipe-right' : 'swipe-left');
+
+    setTimeout(() => {
+      cardArea.classList.remove('swipe-right', 'swipe-left');
+      document.getElementById('overlayYes').style.opacity = '0';
+      document.getElementById('overlayNo').style.opacity = '0';
+
+      // Record
+      const originalIdx = DAYS[currentDay].words.indexOf(queue[queueIdx]);
+      if(isKnown) known.add(originalIdx); else unknown.add(originalIdx);
+
+      queueIdx++;
+      updateProgress();
+      renderCard();
+    }, 420);
+  }, 100);
+}
+
+function updateProgress() {
+  const total = queue.length;
+  const done = queueIdx;
+  const pct = total > 0 ? (done/total)*100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${done}/${total}`;
+}
+
+// ─── SWIPE GESTURE ───────────────────────────────────────────
+function setupSwipe() {
+  const cardArea = document.getElementById('cardArea');
+  // Clone to remove old listeners
+  const newCard = cardArea.cloneNode(true);
+  cardArea.parentNode.replaceChild(newCard, cardArea);
+  const ca = document.getElementById('cardArea');
+
+  // Touch
+  ca.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    currentX = startX;
+    isDragging = false;
+  }, {passive: true});
+
+  ca.addEventListener('touchmove', function(e) {
+    currentX = e.touches[0].clientX;
+    const dx = currentX - startX;
+    if(Math.abs(dx) > 12) {
+      isDragging = true;
+      e.preventDefault();
+    }
+    if(isDragging) updateDragVisual(dx);
+  }, {passive: false});
+
+  ca.addEventListener('touchend', function(e) {
+    const dx = currentX - startX;
+    endDrag(dx);
+  });
+
+  // Mouse (desktop)
+  ca.addEventListener('mousedown', function(e) {
+    if(e.button !== 0) return;
+    startX = e.clientX;
+    currentX = startX;
+    isDragging = false;
+    function onMove(e) {
+      currentX = e.clientX;
+      const dx = currentX - startX;
+      if(Math.abs(dx) > 8) isDragging = true;
+      if(isDragging) updateDragVisual(dx);
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const dx = currentX - startX;
+      endDrag(dx);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+function updateDragVisual(dx) {
+  const cardArea = document.getElementById('cardArea');
+  cardArea.classList.toggle('dragging-right', dx > 40);
+  cardArea.classList.toggle('dragging-left', dx < -40);
+  const overlayYes = document.getElementById('overlayYes');
+  const overlayNo = document.getElementById('overlayNo');
+  if(dx > 40) overlayYes.style.opacity = Math.min((dx-40)/80, 0.7).toString();
+  else overlayYes.style.opacity = '0';
+  if(dx < -40) overlayNo.style.opacity = Math.min((-dx-40)/80, 0.7).toString();
+  else overlayNo.style.opacity = '0';
+}
+
+function endDrag(dx) {
+  const cardArea = document.getElementById('cardArea');
+  cardArea.classList.remove('dragging-right','dragging-left');
+  document.getElementById('overlayYes').style.opacity = '0';
+  document.getElementById('overlayNo').style.opacity = '0';
+  if(!isDragging) {
+    // It was a tap → flip card
+    flipCard();
+    return;
+  }
+  // Swipe threshold
+  if(dx > 70) markCard(true);
+  else if(dx < -70) markCard(false);
+  // else: partial drag, do nothing
+}
+
+// ─── STATS ───────────────────────────────────────────────────
+function showStats() {
+  document.getElementById('studyScreen').style.display = 'none';
+  document.getElementById('statsScreen').style.display = 'flex';
+
+  const total = queue.length;
+  const knownCount = known.size;
+  const unknownCount = unknown.size;
+  const pct = total > 0 ? Math.round((knownCount/total)*100) : 0;
+
+  // Save progress
+  if(!isReview) {
+    progress[currentDay] = { known:[...known], unknown:[...unknown] };
+  } else {
+    // Merge review results
+    const p = progress[currentDay] || {known:[],unknown:[]};
+    const newKnown = new Set(p.known);
+    const newUnknown = new Set(p.unknown);
+    known.forEach(i => { newKnown.add(i); newUnknown.delete(i); });
+    unknown.forEach(i => { newUnknown.add(i); newKnown.delete(i); });
+    progress[currentDay] = { known:[...newKnown], unknown:[...newUnknown] };
+  }
+  saveProgress();
+
+  // Render
+  document.getElementById('statKnown').textContent = knownCount;
+  document.getElementById('statUnknown').textContent = unknownCount;
+  document.getElementById('circlePercent').textContent = pct + '%';
+
+  // Circle
+  const circumference = 314;
+  const offset = circumference - (pct/100)*circumference;
+  setTimeout(() => {
+    document.getElementById('circleArc').style.strokeDashoffset = offset;
+  }, 100);
+
+  // Headline
+  if(pct === 100) {
+    document.getElementById('statsEmoji').textContent = '🏆';
+    document.getElementById('statsHeadline').innerHTML = '<span>Hoàn hảo!</span> Thuộc hết rồi!';
+    document.getElementById('perfectMsg').style.display = 'block';
+    document.getElementById('reviewBtn').style.display = 'none';
+  } else if(pct >= 70) {
+    document.getElementById('statsEmoji').textContent = '🎉';
+    document.getElementById('statsHeadline').innerHTML = `Học xong! <span>${pct}%</span> đã thuộc`;
+    document.getElementById('perfectMsg').style.display = 'none';
+    document.getElementById('reviewBtn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('statsEmoji').textContent = '💪';
+    document.getElementById('statsHeadline').innerHTML = `Cố lên! <span>${pct}%</span> đã thuộc`;
+    document.getElementById('perfectMsg').style.display = 'none';
+    document.getElementById('reviewBtn').style.display = 'inline-flex';
+  }
+
+  // Disable review button if nothing to review
+  if(unknownCount === 0) {
+    document.getElementById('reviewBtn').style.display = 'none';
+  }
+
+  renderHome();
+}
+
+function startReview() {
+  startDay(currentDay, true);
+}
+
+function goHome() {
+  document.getElementById('studyScreen').style.display = 'none';
+  document.getElementById('statsScreen').style.display = 'none';
+  document.getElementById('sectionScreen').style.display = 'flex';
+  renderHome();
+}
+
+// ─── CARD CLICK (flip) ───────────────────────────────────────
+document.getElementById('cardArea').addEventListener('click', function(e) {
+  // Only if not dragging (handled in endDrag)
+});
+
+// ─── KEYBOARD SHORTCUTS ──────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const study = document.getElementById('studyScreen');
+  if(study.style.display !== 'flex') return;
+  if(e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+  else if(e.key === 'ArrowRight') markCard(true);
+  else if(e.key === 'ArrowLeft') markCard(false);
+});
+
+// ─── INIT ────────────────────────────────────────────────────
+renderHome();
+</script>
+
+</body>
+</html>
